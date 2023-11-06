@@ -7,17 +7,26 @@ import Notification from './components/Notification';
 
 import personService from './services/persons';
 
+/*The `App` function is the main component of the phonebook application.
+ It manages the state of the application, including the list of persons,
+ the input fields for adding new persons, the filter for searching persons,
+ and the notification message. It also handles the logic for adding, updating,
+ and removing persons from the phonebook*/
+
 const App = () => {
+  // State variables
   const [persons, setPersons] = useState([]);
   const [newName, setNewName] = useState('');
   const [newNumber, setNewNumber] = useState('');
   const [filter, setFilter] = useState('');
   const [info, setInfo] = useState({ message: null });
 
+  // Fetch initial persons data from server
   useEffect(() => {
     personService.getAll().then((initialPersons) => setPersons(initialPersons));
   }, []);
 
+  // Function to show notification message
   const notifyWith = (message, type = 'info') => {
     setInfo({
       message,
@@ -29,11 +38,13 @@ const App = () => {
     }, 3000);
   };
 
+  // Function to clean the input fields
   const cleanForm = () => {
     setNewName('');
     setNewNumber('');
   };
 
+  // Function to update an existing person
   const updatePerson = (person) => {
     const ok = window.confirm(
       `${newName} is already added to phonebook, replace the number?`
@@ -45,7 +56,7 @@ const App = () => {
           setPersons(
             persons.map((p) => (p.id !== person.id ? p : updatedPerson))
           );
-          notifyWith(`phon number of ${person.name} updated!`);
+          notifyWith(`phone number of ${person.name} updated!`);
         })
         .catch(() => {
           notifyWith(`${person.name} has already been removed`, 'error');
@@ -56,6 +67,7 @@ const App = () => {
     }
   };
 
+  // Function to add a new person
   const addPerson = (event) => {
     event.preventDefault();
     const person = persons.find((p) => p.name === newName);
@@ -76,9 +88,15 @@ const App = () => {
         notifyWith(`${createdPerson.name} added!`);
 
         cleanForm();
+      })
+      .catch(function (error) {
+        const errorMessage = error.response.data.error;
+        console.log(error.response.data.error);
+        notifyWith(errorMessage, 'error');
       });
   };
 
+  // Function to remove a person
   const removePerson = (person) => {
     const ok = window.confirm(`remove ${person.name} from phonebook?`);
     if (ok) {
@@ -89,11 +107,14 @@ const App = () => {
     }
   };
 
+  // Function to filter persons by name
   const byFilterField = (p) =>
     p.name.toLowerCase().includes(filter.toLowerCase());
 
+  // Filter the persons based on the filter value
   const personsToShow = filter ? persons.filter(byFilterField) : persons;
 
+  // Render the components
   return (
     <div>
       <h2>Phonebook</h2>
